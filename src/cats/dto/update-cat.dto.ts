@@ -1,7 +1,11 @@
-import { IsInt, IsOptional, IsPositive, IsString, MinLength } from "class-validator";
+//import { IsInt, IsOptional, IsPositive, IsString, MinLength } from "class-validator";
 
+import { PartialType } from "@nestjs/mapped-types";
+import { CreateCatDto } from "./create-cat.dto";
 
-export class UpdateCatDto {
+export class UpdateCatDto extends PartialType(CreateCatDto) {}
+
+/* export class UpdateCatDto {
     @IsString()
     @MinLength(2)
     @IsOptional()
@@ -15,4 +19,4 @@ export class UpdateCatDto {
     @IsString()
     @IsOptional()
     breed?: string;
-}
+} */

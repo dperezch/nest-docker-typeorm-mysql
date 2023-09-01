@@ -4,12 +4,14 @@ import { RegisterDto } from './dto/register.dto';
 
 import * as bcryptjs from 'bcryptjs';
 import { LoginDto } from './dto/login.dto';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
 
     constructor(
         private readonly usersService: UsersService,
+        private readonly jwtService: JwtService,
     ){}
 
     async register({name, email, password}: RegisterDto){  //registerDto
@@ -20,15 +22,21 @@ export class AuthService {
             throw new BadRequestException('User already exist');
         }
 
-         return await this.usersService.create({
+        await this.usersService.create({
             name,
             email,
             password: await bcryptjs.hash(password, 10)
-    });
+        });
+
+        return {
+            name,
+            email,
+        };
+
     }
 
     async login({email, password}: LoginDto){
-        const user = await this.usersService.findOneByEmail(email);
+        const user = await this.usersService.findByEmailWithPassword(email);
         if(!user){
             throw new UnauthorizedException('email is wrong');
         }
@@ -38,7 +46,27 @@ export class AuthService {
             throw new UnauthorizedException('password is wrong');
         }
 
-        return user;
+        const payload = { email: user.email, role: user.role};
+
+        const token = await this.jwtService.signAsync(payload);
+
+
+
+        return {
+            token,
+            email,
+        }
+    }
+
+    async profile({email, role}: {email: string, role: string}){
+        
+        /* if (role !== 'admin') {
+            throw new UnauthorizedException(
+                'You are not authorized to access this resource'
+            )
+        } */
+
+        return await this.usersService.findOneByEmail(email);
     }
 
 }
